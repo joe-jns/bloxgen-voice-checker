@@ -1,0 +1,36 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <style>
+    body {
+      width: 260px;
+      margin: 0;
+      padding: 14px 16px;
+      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+      background: #0f1115;
+      color: #e5e7eb;
+    }
+    h1 { font-size: 14px; margin: 0 0 6px; }
+    .hint { font-size: 11px; color: #9ca3af; margin: 0 0 12px; }
+    button {
+      width: 100%;
+      cursor: pointer;
+      border: none;
+      border-radius: 7px;
+      padding: 9px 10px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #fff;
+      background: #6d28d9;
+    }
+    button:hover { background: #5b21b6; }
+  </style>
+</head>
+<body>
+  <h1>Bloxgen Voice Checker</h1>
+  <div class="hint">Click the mic icon on any account, or check them all at once.</div>
+  <button id="checkAll">Check all visible accounts</button>
+  <script src="popup.js"></script>
+</body>
+</html>

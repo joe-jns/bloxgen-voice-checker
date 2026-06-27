@@ -1,0 +1,34 @@
+/* Voice button: reuses the native Bloxgen button look (cloned classes),
+   with a mic icon (color = status) + a text label. */
+.bvc-voicebtn {
+  display: inline-flex !important;
+  align-items: center;
+  gap: 6px;
+  margin-left: 8px;
+  cursor: pointer;
+  vertical-align: middle;
+  white-space: nowrap;
+}
+
+/* Fallback when we couldn't clone a native button */
+.bvc-fallback {
+  border: 1px solid #d1d5db;
+  border-radius: 8px;
+  padding: 7px 13px;
+  background: #ffffff;
+  color: #111827;
+  font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
+  font-size: 14px;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.bvc-mic-svg { flex: none; color: #9ca3af; transition: color .15s ease; }
+.bvc-label { line-height: 1; }
+
+/* Mic pulses while checking */
+.bvc-pulse .bvc-mic-svg { animation: bvc-pulse 1s ease-in-out infinite; }
+@keyframes bvc-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: .3; }
+}

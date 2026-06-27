@@ -1,0 +1,26 @@
+{
+  "manifest_version": 3,
+  "name": "Bloxgen Voice Checker",
+  "version": "1.0.0",
+  "description": "Checks whether Roblox voice chat is enabled on Bloxgen-generated accounts.",
+  "permissions": ["cookies"],
+  "host_permissions": [
+    "https://*.bloxgen.net/*",
+    "https://*.roblox.com/*"
+  ],
+  "background": {
+    "service_worker": "background.js"
+  },
+  "action": {
+    "default_title": "Bloxgen Voice Checker",
+    "default_popup": "popup.html"
+  },
+  "content_scripts": [
+    {
+      "matches": ["https://bloxgen.net/dashboard/generator*"],
+      "js": ["content.js"],
+      "css": ["content.css"],
+      "run_at": "document_idle"
+    }
+  ]
+}

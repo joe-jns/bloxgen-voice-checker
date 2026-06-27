@@ -1,0 +1,87 @@
+// Bloxgen Voice Checker - service worker
+// Receives a .ROBLOSECURITY cookie, sets it on .roblox.com, queries Roblox's voice
+// API, then clears the cookie. Everything is SERIALIZED because the cookie store is
+// global to the profile: two checks running in parallel would clobber each other.
+
+const ROBLOX_URL = "https://www.roblox.com/";
+const COOKIE_NAME = ".ROBLOSECURITY";
+
+// --- Queue: one check at a time ---------------------------------------------
+let chain = Promise.resolve();
+function enqueue(task) {
+  const run = chain.then(task, task);
+  chain = run.catch(() => {}); // never break the chain
+  return run;
+}
+
+async function setCookie(value) {
+  await chrome.cookies.set({
+    url: ROBLOX_URL,
+    name: COOKIE_NAME,
+    value: value,
+    domain: ".roblox.com",
+    path: "/",
+    secure: true,
+    httpOnly: true,
+    sameSite: "no_restriction",
+    expirationDate: Math.floor(Date.now() / 1000) + 3600
+  });
+}
+
+async function clearCookie() {
+  try {
+    await chrome.cookies.remove({ url: ROBLOX_URL, name: COOKIE_NAME });
+  } catch (_) {}
+}
+
+async function checkVoice(cookie) {
+  await setCookie(cookie);
+  try {
+    // 1) Is the cookie alive? (also gives userId / name)
+    const meRes = await fetch("https://users.roblox.com/v1/users/authenticated", {
+      credentials: "include",
+      cache: "no-store"
+    });
+    if (meRes.status === 401 || meRes.status === 403) {
+      return { ok: true, alive: false };
+    }
+    if (!meRes.ok) {
+      return { ok: false, error: "auth HTTP " + meRes.status };
+    }
+    const me = await meRes.json();
+
+    // 2) Voice chat status
+    const vRes = await fetch("https://voice.roblox.com/v1/settings", {
+      credentials: "include",
+      cache: "no-store"
+    });
+    if (!vRes.ok) {
+      return { ok: false, error: "voice HTTP " + vRes.status, userId: me.id, name: me.name };
+    }
+    const v = await vRes.json();
+
+    return {
+      ok: true,
+      alive: true,
+      voiceEnabled: !!v.isVoiceEnabled,
+      verified: !!v.isVerifiedForVoice,
+      eligible: !!v.isUserEligible,
+      banned: !!v.isBanned,
+      denialReason: v.denialReason,
+      canVerifyAge: !!v.canVerifyAgeForVoice,
+      userId: me.id,
+      name: me.name
+    };
+  } catch (e) {
+    return { ok: false, error: String(e && e.message ? e.message : e) };
+  } finally {
+    await clearCookie();
+  }
+}
+
+chrome.runtime.onMessage.addListener((msg, _sender, sendResponse) => {
+  if (msg && msg.type === "CHECK_VOICE" && typeof msg.cookie === "string") {
+    enqueue(() => checkVoice(msg.cookie)).then(sendResponse);
+    return true; // async response
+  }
+});
