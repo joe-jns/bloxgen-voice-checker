@@ -6,6 +6,18 @@
 const ROBLOX_URL = "https://www.roblox.com/";
 const COOKIE_NAME = ".ROBLOSECURITY";
 
+// Map Roblox age-group translation keys to a short label.
+//   Label.AgeGroupOver21 -> 21+   Label.AgeGroup18To20 -> 18-20   Label.AgeGroupUnder13 -> <13
+function ageGroupLabel(key) {
+  if (!key) return null;
+  const m = String(key).replace("Label.AgeGroup", "");
+  if (m.startsWith("Over")) return m.slice(4) + "+";
+  if (m.startsWith("Under")) return "<" + m.slice(5);
+  const r = m.match(/^(\d+)To(\d+)$/);
+  if (r) return r[1] + "-" + r[2];
+  return m;
+}
+
 // --- Queue: one check at a time ---------------------------------------------
 let chain = Promise.resolve();
 function enqueue(task) {
@@ -60,6 +72,19 @@ async function checkVoice(cookie) {
     }
     const v = await vRes.json();
 
+    // 3) Age group (new Roblox age ranges: <13, 13-15, 16-17, 18-20, 21+)
+    let ageGroup = null;
+    try {
+      const aRes = await fetch("https://apis.roblox.com/user-settings-api/v1/account-insights/age-group", {
+        credentials: "include",
+        cache: "no-store"
+      });
+      if (aRes.ok) {
+        const a = await aRes.json();
+        ageGroup = ageGroupLabel(a.ageGroupTranslationKey);
+      }
+    } catch (_) {}
+
     return {
       ok: true,
       alive: true,
@@ -69,6 +94,7 @@ async function checkVoice(cookie) {
       banned: !!v.isBanned,
       denialReason: v.denialReason,
       canVerifyAge: !!v.canVerifyAgeForVoice,
+      ageGroup: ageGroup,
       userId: me.id,
       name: me.name
     };

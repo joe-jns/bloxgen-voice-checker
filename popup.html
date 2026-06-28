@@ -24,13 +24,15 @@
       color: #fff;
       background: #6d28d9;
     }
-    button:hover { background: #5b21b6; }
+    button:hover { filter: brightness(1.1); }
+    button.sec { background: #374151; margin-top: 8px; }
   </style>
 </head>
 <body>
   <h1>Bloxgen Voice Checker</h1>
-  <div class="hint">Click the mic icon on any account, or check them all at once.</div>
+  <div class="hint">Click the mic on any account, or check them all. Results are remembered.</div>
   <button id="checkAll">Check all visible accounts</button>
+  <button id="clear" class="sec">Clear checked results</button>
   <script src="popup.js"></script>
 </body>
 </html>

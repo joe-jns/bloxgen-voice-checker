@@ -23,6 +23,32 @@
   let cookieMap = {};        // username(lower) -> cookie
   let lastFetch = 0;
   let nativeBtnClass = "";   // className cloned from a native Bloxgen button
+  let voiceCache = {};       // username(lower) -> { state, title, extra } (persisted results)
+
+  // --- Result cache (already-checked accounts stay checked) -----------------
+  chrome.storage.local.get({ voiceCache: {} }, (v) => {
+    voiceCache = v.voiceCache || {};
+    applyCacheToAll();
+  });
+  chrome.storage.onChanged.addListener((ch, area) => {
+    if (area === "local" && ch.voiceCache) {
+      voiceCache = ch.voiceCache.newValue || {};
+      applyCacheToAll();
+    }
+  });
+  function saveCache(uname, entry) {
+    voiceCache[uname] = entry;
+    chrome.storage.local.set({ voiceCache });
+  }
+  function applyCacheTo(el) {
+    const c = voiceCache[el.dataset.bvcUser];
+    if (c) { applyStatus(el, c.state, c.title, c.extra); return; }
+    if (el.classList.contains("bvc-pulse")) return; // don't disturb an in-flight check
+    applyStatus(el, "idle");
+  }
+  function applyCacheToAll() {
+    document.querySelectorAll(".bvc-el").forEach(applyCacheTo);
+  }
 
   // Status -> mic color + button label
   const STATES = {
@@ -57,20 +83,20 @@
   // --- Status -> button appearance ------------------------------------------
   function cssEsc(s) { return String(s).replace(/["\\]/g, "\\$&"); }
 
-  function applyStatus(el, state, title) {
+  function applyStatus(el, state, title, extra) {
     const s = STATES[state] || STATES.idle;
     el.title = title || s.label;
     const svg = el.querySelector(".bvc-mic-svg");
     if (svg) svg.style.color = s.mic;
     const lbl = el.querySelector(".bvc-label");
-    if (lbl) lbl.textContent = s.label;
+    if (lbl) lbl.textContent = s.label + (extra ? " · " + extra : "");
     el.classList.toggle("bvc-pulse", state === "pending");
   }
 
-  function setStatus(uname, state, title) {
+  function setStatus(uname, state, title, extra) {
     document
       .querySelectorAll('[data-bvc-user="' + cssEsc(uname) + '"]')
-      .forEach((el) => applyStatus(el, state, title));
+      .forEach((el) => applyStatus(el, state, title, extra));
   }
 
   // --- Run a check ----------------------------------------------------------
@@ -94,13 +120,21 @@
         return;
       }
       if (!res.ok) { setStatus(uname, "error", res.error || "Error"); return; }
-      if (!res.alive) { setStatus(uname, "dead", "Cookie expired/invalid - regenerate"); return; }
+      if (!res.alive) {
+        setStatus(uname, "dead", "Cookie expired/invalid - regenerate");
+        saveCache(uname, { state: "dead", title: "Cookie expired/invalid - regenerate", extra: "" });
+        return;
+      }
       const detail =
         "verified: " + res.verified +
         " | eligible: " + res.eligible +
         " | denialReason: " + res.denialReason +
+        (res.ageGroup ? " | age: " + res.ageGroup : "") +
         (res.banned ? " | BANNED" : "");
-      setStatus(uname, res.voiceEnabled ? "on" : "off", detail);
+      const state = res.voiceEnabled ? "on" : "off";
+      const extra = res.ageGroup || "";
+      setStatus(uname, state, detail, extra);
+      saveCache(uname, { state: state, title: detail, extra: extra });
     });
   }
 
@@ -112,6 +146,7 @@
     btn.dataset.bvcUser = String(username).toLowerCase();
     btn.innerHTML = MIC_SVG + '<span class="bvc-label">Voice</span>';
     applyStatus(btn, "idle", "Check Roblox voice chat for " + username);
+    applyCacheTo(btn); // show a previously-checked result immediately
     btn.addEventListener("click", (e) => {
       e.preventDefault();
       e.stopPropagation();
@@ -146,6 +181,15 @@
     return null;
   }
 
+  // Inject a fresh Voice button, OR replace the existing one if it's bound to a
+  // different account (React reuses the card/row node when a new alt is generated).
+  function ensureVoiceButton(container, username) {
+    const existing = container.querySelector(".bvc-el");
+    if (existing && existing.dataset.bvcUser === String(username).toLowerCase()) return;
+    if (existing) existing.remove();
+    container.appendChild(makeVoiceButton(username));
+  }
+
   function injectAll() {
     if (!onGeneratorPage()) return; // SPA: don't inject after navigating away
     captureNativeClass();
@@ -157,8 +201,7 @@
         if (!row.cells || row.cells.length < 2) return;
         const username = (row.cells[1].textContent || "").trim();
         if (!username) return;
-        const cell = row.cells[row.cells.length - 1];
-        if (!cell.querySelector(".bvc-el")) cell.appendChild(makeVoiceButton(username));
+        ensureVoiceButton(row.cells[row.cells.length - 1], username);
       });
     }
 
@@ -175,9 +218,7 @@
       }
       const username = h3 ? h3.textContent.trim() : null;
       const bar = copyBtn.parentElement;
-      if (username && bar && !bar.querySelector(".bvc-el")) {
-        bar.appendChild(makeVoiceButton(username));
-      }
+      if (username && bar) ensureVoiceButton(bar, username);
     }
   }
 

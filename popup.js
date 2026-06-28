@@ -11,3 +11,16 @@ checkAllBtn.addEventListener("click", async () => {
   chrome.tabs.sendMessage(tab.id, { type: "CHECK_ALL" });
   window.close();
 });
+
+const clearBtn = document.getElementById("clear");
+clearBtn.addEventListener("click", () => {
+  if (clearBtn.dataset.armed) {
+    chrome.storage.local.set({ voiceCache: {} });
+    clearBtn.textContent = "Cleared";
+    setTimeout(() => { delete clearBtn.dataset.armed; clearBtn.textContent = "Clear checked results"; }, 1200);
+  } else {
+    clearBtn.dataset.armed = "1";
+    clearBtn.textContent = "Click again to confirm";
+    setTimeout(() => { delete clearBtn.dataset.armed; clearBtn.textContent = "Clear checked results"; }, 3000);
+  }
+});

@@ -3,7 +3,7 @@
   "name": "Bloxgen Voice Checker",
   "version": "1.0.0",
   "description": "Checks whether Roblox voice chat is enabled on Bloxgen-generated accounts.",
-  "permissions": ["cookies"],
+  "permissions": ["cookies", "storage"],
   "host_permissions": [
     "https://*.bloxgen.net/*",
     "https://*.roblox.com/*"
