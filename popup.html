@@ -3,36 +3,57 @@
 <head>
   <meta charset="utf-8" />
   <style>
-    body {
-      width: 260px;
-      margin: 0;
-      padding: 14px 16px;
-      font-family: system-ui, -apple-system, "Segoe UI", sans-serif;
-      background: #0f1115;
-      color: #e5e7eb;
+    /* Bloxgen design tokens (extracted from the site) */
+    :root {
+      --bg: oklch(100% 0 0);
+      --fg: oklch(32.11% 0 0);
+      --primary: oklch(58.31% 0.2225 26.3342);
+      --primary-fg: oklch(100% 0 0);
+      --muted-fg: oklch(54.79% 0.0267 17.9979);
+      --border: oklch(89.62% 0.0066 17.2795);
+      --secondary: oklch(96.05% 0.0032 17.214);
+      --accent: oklch(96.05% 0.0032 17.214);
     }
-    h1 { font-size: 14px; margin: 0 0 6px; }
-    .hint { font-size: 11px; color: #9ca3af; margin: 0 0 12px; }
+    * { box-sizing: border-box; }
+    body {
+      width: 270px;
+      margin: 0;
+      padding: 16px;
+      background: var(--bg);
+      color: var(--fg);
+      font-family: "GeistSans", system-ui, -apple-system, "Segoe UI", sans-serif;
+    }
+    .brand { display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .dot { width: 9px; height: 9px; border-radius: 999px; background: var(--primary); }
+    h1 { font-size: 15px; font-weight: 600; margin: 0; }
+    .hint { font-size: 12px; color: var(--muted-fg); margin: 0 0 14px; line-height: 1.4; }
+
     button {
       width: 100%;
       cursor: pointer;
-      border: none;
-      border-radius: 7px;
-      padding: 9px 10px;
-      font-size: 13px;
-      font-weight: 600;
-      color: #fff;
-      background: #6d28d9;
+      border-radius: 8px;
+      padding: 9px 12px;
+      font-size: 14px;
+      font-weight: 500;
+      font-family: inherit;
+      transition: filter .12s ease, background .12s ease;
     }
-    button:hover { filter: brightness(1.1); }
-    button.sec { background: #374151; margin-top: 8px; }
+    .primary { border: none; background: var(--primary); color: var(--primary-fg); }
+    .primary:hover { filter: brightness(0.94); }
+    .outline {
+      margin-top: 8px;
+      background: var(--bg);
+      color: var(--fg);
+      border: 1px solid var(--border);
+    }
+    .outline:hover { background: var(--accent); }
   </style>
 </head>
 <body>
-  <h1>Bloxgen Voice Checker</h1>
-  <div class="hint">Click the mic on any account, or check them all. Results are remembered.</div>
-  <button id="checkAll">Check all visible accounts</button>
-  <button id="clear" class="sec">Clear checked results</button>
+  <div class="brand"><span class="dot"></span><h1>Voice Checker</h1></div>
+  <p class="hint">Click the mic on any account, or check them all. Results are remembered.</p>
+  <button id="checkAll" class="primary">Check all visible accounts</button>
+  <button id="clear" class="outline">Clear checked results</button>
   <script src="popup.js"></script>
 </body>
 </html>
