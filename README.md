@@ -40,7 +40,12 @@ Roblox's voice API, and shows the result inline — **no auto-login, no captcha*
 
   Hover the button for details (`denialReason`, eligibility, ban status…).
 
-- Popup with a **Check all visible accounts** button (checks every history row at once).
+- Also shows the account's **age group** next to the status (e.g. `Voice ON · 21+`), using
+  Roblox's new age ranges: `<13`, `13-15`, `16-17`, `18-20`, `21+`.
+- **Results are remembered.** Once an account is checked, its result (and age group) is saved
+  locally and shown again instantly on reload — already-checked accounts stay checked. Clicking
+  the button re-checks and updates it.
+- Popup with **Check all visible accounts** and **Clear checked results** (resets the memory).
 
 ---
 
@@ -51,10 +56,12 @@ content.js  →  GET api.bloxgen.net/api/accounts/history   (cookie returned in 
 background  →  set .ROBLOSECURITY on .roblox.com
             →  GET users.roblox.com/v1/users/authenticated (is the cookie alive?)
             →  GET voice.roblox.com/v1/settings            (isVoiceEnabled)
+            →  GET apis.roblox.com/user-settings-api/v1/account-insights/age-group  (age group)
             →  remove the cookie
 ```
 
-The decisive field is **`isVoiceEnabled`** from `voice.roblox.com/v1/settings`.
+The decisive field is **`isVoiceEnabled`** from `voice.roblox.com/v1/settings`; the age group
+comes from `ageGroupTranslationKey` (e.g. `Label.AgeGroupOver21` → `21+`).
 
 ---
 
