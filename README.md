@@ -6,6 +6,10 @@ A Chrome extension (Manifest V3) that tells you, for each account generated on
 It reads each account's cookie straight from the Bloxgen API, tests it against
 Roblox's voice API, and shows the result inline — **no auto-login, no captcha**.
 
+> **Companion tools** (same Bloxgen page, coexist side by side):
+> [Bloxgen Account Claimer](https://github.com/joe-jns/bloxgen-account-claimer) — claim accounts by changing their password ·
+> [Bloxgen Discord bot](https://github.com/joe-jns/bloxgen-discord-bot) — generate & manage accounts from Discord.
+
 ---
 
 ## Table of contents
